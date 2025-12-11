@@ -1,10 +1,6 @@
 import { GoogleGenAI, FunctionDeclaration, Type, Tool } from "@google/genai";
 import { AgentType, GeneratedDocumentData } from "../types";
 
-// Initialize Gemini Client
-// NOTE: In a real production environment, ensure strict backend proxying for keys.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // --- Tool Definitions ---
 
 // Tool 1: Generate Document (Used by Admission, Pharmacy, Billing)
@@ -32,11 +28,23 @@ const generateDocumentFunction: FunctionDeclaration = {
 };
 
 /**
+ * Helper to get the AI client safely.
+ * Initializes lazily to prevent "process is not defined" crashes during initial page load.
+ */
+const getAiClient = () => {
+  // NOTE: apiKey must be provided via process.env.API_KEY
+  // If the app crashes here, check your .env file or Netlify Environment Variables.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  return ai;
+}
+
+/**
  * PHASE 1: ORCHESTRATOR
  * Decides which agent handles the request.
  */
 export const orchestrateRequest = async (userQuery: string): Promise<{ agent: AgentType; reasoning: string }> => {
   const model = "gemini-2.5-flash";
+  const ai = getAiClient();
   
   const systemInstruction = `
     ROLE: You are the Central Manager (Orchestrator) for the MHO (Manage Hospital Operations) system.
@@ -97,6 +105,8 @@ export const executeAgentTask = async (
 }> => {
 
   const model = "gemini-2.5-flash";
+  const ai = getAiClient();
+  
   let tools: Tool[] = [];
   let systemInstruction = "";
 
@@ -189,6 +199,6 @@ export const executeAgentTask = async (
 
   } catch (error) {
     console.error("Agent Execution Failed:", error);
-    return { text: "I encountered a system error processing your request. Please contact IT support." };
+    return { text: "I encountered a system error processing your request. Please check your API Key configuration." };
   }
 };
