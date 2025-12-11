@@ -1,0 +1,5 @@
+{
+  "name": "MHO - Hospital Agent System",
+  "description": "A HIPAA-compliant, agentic hospital operations manager that delegates tasks to specialized sub-agents for admission, scheduling, pharmacy, and billing (RCM).",
+  "requestFramePermissions": []
+}
